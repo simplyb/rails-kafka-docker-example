@@ -32,15 +32,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: general-db
     volumes:
-      - ./pgdata_auth:/var/lib/postgresql/data
-    # volumes:
-      # - database_data:/var/lib/postgresql/data
-      # - ./authentication_app/tmp/db:/var/lib/postgresql/data
-      # - ./name_randomizer/tmp/db:/var/lib/postgresql/data
-    # image: postgres
-    # volumes:
-    #   - ./authentication_app/tmp/db:/var/lib/postgresql/data
-    #   - ./name_randomizer/tmp/db:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
   auth_web:
     build: ./authentication_app
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"

@@ -1,0 +1,53 @@
+version: '3'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    links:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CREATE_TOPICS: 'test-writer-0:3:1,test-writer-1:3:1'
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_ADVERTISED_HOST_NAME: '127.0.0.1'
+      KAFKA_ADVERTISED_PORT: '9092'
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_MESSAGE_MAX_BYTES: 200000000
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  db:
+    image: postgres
+    volumes:
+      - ./authentication_app/tmp/db:/var/lib/postgresql/data
+      - ./name_randomizer/tmp/db:/var/lib/postgresql/data
+  auth_web:
+    build: ./authentication_app
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - ./authentication_app:/authentication_app
+      - ./shared/config/database.yml:/authentication_app/config/database.yml
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+  namer:
+    build: ./name_randomizer
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3001 -b '0.0.0.0'"
+    volumes:
+      - ./name_randomizer:/name_randomizer
+      - ./shared/config/database.yml:/name_randomizer/config/database.yml
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+  # trade_app:
+  #   build: ./trade_app
+  #   volumes:
+  #     - ./trade_app:/trade_app

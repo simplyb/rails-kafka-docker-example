@@ -24,15 +24,29 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   db:
     image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: general-db
     volumes:
-      - ./authentication_app/tmp/db:/var/lib/postgresql/data
-      - ./name_randomizer/tmp/db:/var/lib/postgresql/data
+      - ./pgdata_auth:/var/lib/postgresql/data
+    # volumes:
+      # - database_data:/var/lib/postgresql/data
+      # - ./authentication_app/tmp/db:/var/lib/postgresql/data
+      # - ./name_randomizer/tmp/db:/var/lib/postgresql/data
+    # image: postgres
+    # volumes:
+    #   - ./authentication_app/tmp/db:/var/lib/postgresql/data
+    #   - ./name_randomizer/tmp/db:/var/lib/postgresql/data
   auth_web:
     build: ./authentication_app
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - ./authentication_app:/authentication_app
-      - ./shared/config/database.yml:/authentication_app/config/database.yml
+      # - ./shared/config/database.yml:/authentication_app/config/database.yml
     ports:
       - "3000:3000"
     depends_on:
@@ -42,7 +56,7 @@ services:
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3001 -b '0.0.0.0'"
     volumes:
       - ./name_randomizer:/name_randomizer
-      - ./shared/config/database.yml:/name_randomizer/config/database.yml
+      # - ./shared/config/database.yml:/name_randomizer/config/database.yml
     ports:
       - "3001:3001"
     depends_on:
